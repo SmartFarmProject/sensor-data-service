@@ -16,6 +16,8 @@ import java.util.Map;
 
 @Configuration
 public class KafkaProducerConfig {
+
+    public static final String PROCESSED_SENSOR_DATA_TOPIC = "processed-data-event";
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 

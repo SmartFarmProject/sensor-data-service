@@ -52,14 +52,46 @@ services:
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 
-#  sensor-data-processor:
-#    image: thebestsmartfarm/sensor-data-service
-#    depends_on:
-#      - zookeeper
-#      - kafka
-#      - init-kafka
-#      - sensor-data-producer
-#    environment:
-#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#      - SPRING_DATA_MONGODB_URI=
-#      - SMART_FARM_FARMDATA_SERVICE_HOST=
+  farm-data-service:
+    image: thebestsmartfarm/farm-data-service
+    ports:
+      - 8081:8081
+    depends_on:
+      - zookeeper
+      - kafka
+      - init-kafka
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+
+  mongodb:
+    image: mongo:latest
+    container_name: "mongodb"
+    ports:
+      - 27017:27017
+
+  redis:
+    image: 'redis'
+    container_name: redis
+    hostname: redis
+    ports:
+      - 6379:6379
+
+  sensor-data-processor:
+    image: thebestsmartfarm/sensor-data-service
+    depends_on:
+      - zookeeper
+      - kafka
+      - init-kafka
+      - sensor-data-producer
+      - mongodb
+      - redis
+      - farm-data-service
+    links:
+      - mongodb
+      - redis
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_DATA_MONGODB_URI=mongodb://host.docker.internal:27017/sensordata
+      - SMART_FARM_FARMDATA_SERVICE_HOST=farm-data-service:8081
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379

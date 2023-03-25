@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-oraclelinux8 as builder
+FROM openjdk:17-jdk-slim as builder
 WORKDIR application
 ADD maven/${project.build.finalName}.jar ${project.build.finalName}.jar
 RUN java -Djarmode=layertools -jar ${project.build.finalName}.jar extract

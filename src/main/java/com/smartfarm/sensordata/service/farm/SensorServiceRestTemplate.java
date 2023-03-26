@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,7 @@ import static java.util.Collections.emptyList;
 public class SensorServiceRestTemplate {
 
     public static final String SENSORS_PATH = "/sensors";
+    public static final String PHYSICAL_ID_QUERY_PARAM = "physicalId"
     private final RestTemplate restTemplate;
     @Value(value = "${smart.farm.farmdata-service-host}")
     private String farmDataServiceHost;
@@ -42,8 +44,8 @@ public class SensorServiceRestTemplate {
         try {
             log.info("Request sensor by id call");
             ResponseEntity<SensorDTO> responseEntity = restTemplate
-                    .exchange(farmDataServiceHost + SENSORS_PATH, HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                    }, sensorId);
+                    .exchange(UriComponentsBuilder.fromUriString(farmDataServiceHost + SENSORS_PATH).queryParam(PHYSICAL_ID_QUERY_PARAM, sensorId).toUriString(), HttpMethod.GET, null, new ParameterizedTypeReference<>() {
+                    });
             return responseEntity.getBody();
         } catch (Exception e) {
             log.error("There is an exception during calling " + farmDataServiceHost + SENSORS_PATH);

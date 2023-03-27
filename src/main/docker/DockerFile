@@ -3,7 +3,7 @@ WORKDIR application
 ADD maven/${project.build.finalName}.jar ${project.build.finalName}.jar
 RUN java -Djarmode=layertools -jar ${project.build.finalName}.jar extract
 
-FROM openjdk:17-jdk-oraclelinux8
+FROM openjdk:17-jdk-slim
 LABEL PROJECT_NAME=${project.artifactId} \
       PROJECT=${project.id}
 

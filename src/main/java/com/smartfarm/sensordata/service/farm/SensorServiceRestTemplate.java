@@ -22,7 +22,7 @@ import static java.util.Collections.emptyList;
 public class SensorServiceRestTemplate {
 
     public static final String SENSORS_PATH = "/sensors";
-    public static final String PHYSICAL_ID_QUERY_PARAM = "physicalId"
+    public static final String PHYSICAL_ID_QUERY_PARAM = "physicalId";
     private final RestTemplate restTemplate;
     @Value(value = "${smart.farm.farmdata-service-host}")
     private String farmDataServiceHost;

@@ -23,6 +23,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1\
+    restart: on-failure
 
   init-kafka:
     image: confluentinc/cp-kafka
@@ -42,6 +43,10 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:9092 --list
       "
+  eureka:
+    image: thebestsmartfarm/smart-farm-eureka
+    ports:
+      - 8761:8761
 
   sensor-data-producer:
     image: thebestsmartfarm/sensor-data-producer-service
@@ -50,7 +55,8 @@ services:
       - kafka
       - init-kafka
     environment:
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    restart: on-failure
 
   farm-data-service:
     image: thebestsmartfarm/farm-data-service
@@ -60,8 +66,13 @@ services:
       - zookeeper
       - kafka
       - init-kafka
+      - eureka
     environment:
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://netflix:eureka@eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: 'true'
+      SPRING_CLOUD_DISCOVERY_ENABLED: 'true'
+    restart: on-failure
 
   mongodb:
     image: mongo:latest
@@ -82,6 +93,7 @@ services:
       - zookeeper
       - kafka
       - init-kafka
+      - eureka
       - sensor-data-producer
       - mongodb
       - redis
@@ -90,8 +102,36 @@ services:
       - mongodb
       - redis
     environment:
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SPRING_DATA_MONGODB_URI=mongodb://host.docker.internal:27017/sensordata
-      - SMART_FARM_FARMDATA_SERVICE_HOST=farm-data-service:8081
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATA_MONGODB_URI: mongodb://host.docker.internal:27017/sensordata
+      SMART_FARM_FARMDATA_SERVICE_HOST: farm-data-service:8081
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://netflix:eureka@eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: 'true'
+      SPRING_CLOUD_DISCOVERY_ENABLED: 'true'
+    restart: on-failure
+
+  controller-management-service:
+    image: thebestsmartfarm/controller-management-service
+    depends_on:
+      - zookeeper
+      - kafka
+      - init-kafka
+      - sensor-data-processor
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    restart: on-failure
+
+  gateway:
+    image: thebestsmartfarm/smart-farm-gateway
+    ports:
+      - 9090:9090
+    depends_on:
+      - eureka
+      - farm-data-service
+      - sensor-data-processor
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://netflix:eureka@eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: 'true'
+    restart: on-failure

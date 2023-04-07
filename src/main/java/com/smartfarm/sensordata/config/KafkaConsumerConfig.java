@@ -1,7 +1,7 @@
 package com.smartfarm.sensordata.config;
 
 import com.smartfarm.sensordata.model.*;
-import com.smartfarm.sensordata.service.farm.model.SensorDTO;
+import com.smartfarm.sensordata.service.farm.event.SensorEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,14 +63,15 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, SensorDTO> generalConsumerFactory() {
+    public ConsumerFactory<String, SensorEvent> generalConsumerFactory() {
         Map<String, Object> props = createProperties();
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, SensorEvent.class);
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>());
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, SensorDTO> generalKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, SensorDTO> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    public ConcurrentKafkaListenerContainerFactory<String, SensorEvent> generalKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, SensorEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(generalConsumerFactory());
         return factory;
     }

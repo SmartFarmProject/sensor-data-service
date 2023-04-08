@@ -119,8 +119,12 @@ services:
       - kafka
       - init-kafka
       - sensor-data-processor
+      - eureka
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://netflix:eureka@eureka:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: 'true'
+      SPRING_CLOUD_DISCOVERY_ENABLED: 'true'
     restart: on-failure
 
   gateway:

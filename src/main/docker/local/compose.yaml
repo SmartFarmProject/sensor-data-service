@@ -104,7 +104,7 @@ services:
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_DATA_MONGODB_URI: mongodb://host.docker.internal:27017/sensordata
-      SMART_FARM_FARMDATA_SERVICE_HOST: farm-data-service:8081
+      SMART_FARM_FARMDATA_SERVICE_HOST: http://gateway:9090/farm-data-service
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://netflix:eureka@eureka:8761/eureka/
@@ -120,8 +120,24 @@ services:
       - init-kafka
       - sensor-data-processor
       - eureka
+      - notification-service
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://netflix:eureka@eureka:8761/eureka/
+      SMART_FARM_NOTIFICATION_SERVICE_HOST: http://gateway:9090/notification-service
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: 'true'
+      SPRING_CLOUD_DISCOVERY_ENABLED: 'true'
+    restart: on-failure
+
+  notification-service:
+    image: thebestsmartfarm/notification-service
+    ports:
+      - 8083:8083
+    depends_on:
+      - eureka
+    environment:
+      BOT_NAME: '@SmartFarmNotificationsBot'
+      BOT_TOKEN: '5898076220:AAFBUSphclzUq1qcizhCmJWf1O3HQiU0FIY'
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://netflix:eureka@eureka:8761/eureka/
       EUREKA_INSTANCE_PREFER_IP_ADDRESS: 'true'
       SPRING_CLOUD_DISCOVERY_ENABLED: 'true'
@@ -135,6 +151,8 @@ services:
       - eureka
       - farm-data-service
       - sensor-data-processor
+      - controller-management-service
+      - notification-service
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://netflix:eureka@eureka:8761/eureka/
       EUREKA_INSTANCE_PREFER_IP_ADDRESS: 'true'

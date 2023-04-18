@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-data-processor
+  labels:
+    app: sensor-data-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sensor-data-processor
+  template:
+    metadata:
+      labels:
+        app: sensor-data-processor
+    spec:
+      containers:
+        - name: sensor-data-service
+          image: thebestsmartfarm/sensor-data-service
+          env:
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-service:9092"
+            - name: SPRING_CLOUD_DISCOVERY_ENABLED
+              value: 'false'
+            - name: SPRING_CLOUD_GATEWAY_ENABLED
+              value: 'false'
+            - name: SPRING_DATA_MONGODB_URI
+              value: "mongodb://mongo-service:27017/sensordata"
+            - name: SMART_FARM_FARMDATA_SERVICE_HOST
+              value: "http://farm-data-service:8081"
+            - name: SPRING_DATA_REDIS_HOST
+              value: "redis-service"
+            - name: SPRING_DATA_REDIS_PORT
+              value: "6379"
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sensor-data-processor
+spec:
+  selector:
+    app: sensor-data-processor
+  ports:
+    - protocol: TCP
+      port: 9092
+#      targetPort:
